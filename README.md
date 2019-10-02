@@ -1,6 +1,5 @@
-# Twiggy's adventures in learning to actually code.
+# Twiggy's adventures in learning C.
 
 ## c_programming
 
-I love c.
-th3id3ntity was here.
+There's some basic programs to explore some of the fundamentals of C, and then a tic-tac-toe game that will eventually support multiplayer over a network.
