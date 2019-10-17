@@ -4,7 +4,7 @@
 #define BUFFER 250
 
 /*
-win function is broken.
+win function is broken fixed, needed to make a blank version of the board with spaces
 */
 
 
@@ -19,6 +19,7 @@ void print_board(Board *a_board);
 void print_instructions();
 int check_win(Board *a_board);
 void update_board(Board *a_board, char p_token, int selected_box);
+Board *make_board();
 
 // Call main
 int main(){
@@ -26,9 +27,9 @@ int main(){
     // define some preconditions
     int win = 0;
     int turn_counter = 0;
-    Board *game_board = calloc(1, sizeof(Board));
     char player_token = 'X';
-    
+    Board *game_board = make_board();
+
     // print the instructions
     print_instructions();
 
@@ -45,9 +46,14 @@ int main(){
         // Update the board
         update_board(game_board, player_token, selected_box);
 
-        // Check for a win
-        // win = check_win(game_board);
+        // Draw the board
+        print_board(game_board);
 
+        // Check for win
+        win = check_win(game_board);
+        if (win){
+            break;
+        }
         // flip the player token
         if (player_token == 'X'){
             player_token = 'Y';
@@ -56,12 +62,10 @@ int main(){
             player_token = 'X';
         }
         turn_counter++;
-        // Draw the board
-        print_board(game_board);
     }
 
     // Print winner
-    printf("WINNER!\n");
+    printf("%c wins!\n", player_token);
     return 0;
 }
 
@@ -131,41 +135,59 @@ void print_board(Board *a_board){
 
 int check_win(Board *a_board){
     // Check for horizontal win
-    if (a_board->marks[0] == a_board->marks[1] == a_board->marks[2] && a_board->marks[0] != ' '){ // added this to check that they're not spaces, but actual player marks
-        printf("WIN1");
+    if (\
+    (a_board->marks[0] == a_board->marks[1] && a_board->marks[1]== a_board->marks[2]) &&\
+    a_board->marks[0] != ' '\
+    ){
         return 1;
     }
-    else if (a_board->marks[3] == a_board->marks[4] == a_board->marks[5] && a_board->marks[3] != ' '){
-        printf("WIN2");
-        return 1;
+    if (\
+    (a_board->marks[3] == a_board->marks[4] && a_board->marks[4]== a_board->marks[5]) &&\
+    a_board->marks[3] != ' '\
+    ){
+	    return 1;
     }
-    else if (a_board->marks[6] == a_board->marks[7] == a_board->marks[8] && a_board->marks[6] != ' '){
-        printf("WIN3");
+    if (\
+    (a_board->marks[6] == a_board->marks[7] && a_board->marks[7]== a_board->marks[8]) &&\
+    a_board->marks[8] != ' '\
+    ){
         return 1;
     }
 
     // Check for vertical win
-    else if (a_board->marks[0] == a_board->marks[3] == a_board->marks[6] && a_board->marks[0] != ' '){
-        printf("WIN4");
+    if (\
+    (a_board->marks[0] == a_board->marks[3] && a_board->marks[3]== a_board->marks[6]) &&\
+    a_board->marks[3] != ' '\
+    ){
         return 1;
                 }
-    else if (a_board->marks[1] == a_board->marks[4] == a_board->marks[7] && a_board->marks[1] != ' '){
+    if (\
+    (a_board->marks[1] == a_board->marks[4] && a_board->marks[4]== a_board->marks[7]) &&\
+    a_board->marks[1] != ' '\
+    ){
         return 1;
     }
-    else if (a_board->marks[2] == a_board->marks[5] == a_board->marks[8] && a_board->marks[2] != ' '){
+    if (\
+    (a_board->marks[2] == a_board->marks[5] && a_board->marks[5]== a_board->marks[8]) &&\
+    a_board->marks[5] != ' '\
+    ){
         return 1;
     }
 
     // Check for diagonal win
-    else if (a_board->marks[0] == a_board->marks[4] == a_board->marks[8] && a_board->marks[0] != ' '){
+    if (\
+    (a_board->marks[0] == a_board->marks[4] && a_board->marks[4]== a_board->marks[8]) &&\
+    a_board->marks[0] != ' '\
+    ){
         return 1;
     }
-    else if (a_board->marks[2] == a_board->marks[4] == a_board->marks[6] && a_board->marks[2] != ' '){
+    if (\
+    (a_board->marks[2] == a_board->marks[4] && a_board->marks[4]== a_board->marks[6]) &&\
+    a_board->marks[6] != ' '\
+    ){
         return 1;
     }
-    else{
-        return 0;
-    }
+    return 0;
 }
 
 void update_board(Board *a_board, char p_token, int selected_box){
@@ -176,4 +198,11 @@ void update_board(Board *a_board, char p_token, int selected_box){
     else {
         a_board->marks[selected_box-1] = p_token;
     }
+}
+
+// new function
+Board *make_board(){
+    Board *new_board = calloc(1, sizeof(Board));
+    snprintf(new_board->marks, 9,"         "); // used a "" for a string
+    return new_board;
 }
