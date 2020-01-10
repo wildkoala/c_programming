@@ -1,0 +1,70 @@
+
+// I'll make ERS in c
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define BUFFER 200
+
+typedef struct card_tag {
+    char suit;
+    int number; //how will this work with face cards?
+} Card;
+
+
+typedef struct deck_tag{
+   Card cards[52];
+} Deck;
+
+
+// there isnt a case where I would have a blank
+Card make_card(suit, card){
+    Card *temp = calloc(1, sizeof(Card));
+    snprintf(temp->suit, BUFFER, "None");
+    temp->number = 0;
+    return temp;
+}
+
+int main(void) {
+  /*Explain rules - 
+   A player wins and ends the game by having all the cards in the deck
+   The deck is initially split evenly among all the players.
+
+   The players take turns flipping a card from the top of their deck and placing it in "the pile"
+   If the card is a jack, the next player's card must be a face card. If not, the person that laid down the jack gets the entire pile
+   If the card is a queen, the next player has 2 chances to get a face card. If not, the person that laid down the queen gets the entire pile.
+   King, 3 chances...
+   Ace, 4...
+
+  The other way that players can win cards is by smacking the pile when a sandwich or a pair appears
+
+  A sandwich is when card number X is followed by card number Y, and then X again
+
+  A pair is when card number X is followed by another card with number X.
+
+  The first player to smack the pile under one of these conditions gets all the cards in the pile.
+  */
+  // Create the deck
+
+  Deck a;
+  a = calloc(1,sizeof(Deck));
+
+  int deck_c = 0;
+  int suit_c;
+  int i;
+  char card_info[3];
+  char suits[5] = {'H','S','D','C'};
+  for (suit_c = 0; suit_c < 4; suit_c++){
+    for (i = 0; i < 12; i++){
+      make_card();
+    }
+
+    printf("%c", suits[suit_c]);
+  }
+    
+  // Shuffle the deck
+  return 0;
+  // Split the deck between the two players
+
+  // 
+}
