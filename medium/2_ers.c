@@ -14,6 +14,9 @@ typedef struct deck_tag {
 
 /*
 
+'->'' means "access the thing at the end of this pointer"
+access individual members in a struct by saying "struct.member"
+
 // I don't need this because I'm creating space for all the cards when I make a deck. I just need to initialize the cards in my deck.
 
 Card *make_card(int given_num, char given_suit){
@@ -60,6 +63,25 @@ void print_deck(Deck *d){
 	}
 }
 
+void swap_cards(Deck *d, int first, int second){ 
+	// I think I'm going to have to allocate a spot in memory to save this card for a sec while I do the swap.
+	Card *saved = calloc(1, sizeof(Card));
+	saved->num = d->cards[first].num;
+	saved->suit = d->cards[first].suit;
+
+	printf("Card saved successfully: %d, %c\n", saved->num, saved->suit); // keep in mind that saved is a pointer to a card rn.
+
+	// Swap the first card with the second
+	d->cards[first].num = d->cards[second].num;
+	d->cards[first].suit = d->cards[second].suit;
+
+	// Grab the saved card and write it into the second to complete the swap.
+	d->cards[second].num = saved->num;
+	d->cards[second].suit = saved->suit;
+
+	printf("Cards swapped successfully\n");
+}
+
 int main(){
 	/*
 	Card *my_card;
@@ -71,6 +93,8 @@ int main(){
 
 	Deck *my_deck;
 	my_deck = make_deck();
+	print_deck(my_deck);
+	swap_cards(my_deck, 0,1);
 	print_deck(my_deck);
 	return 0;
 }
