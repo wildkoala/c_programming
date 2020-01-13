@@ -69,7 +69,7 @@ void swap_cards(Deck *d, int first, int second){
 	saved->num = d->cards[first].num;
 	saved->suit = d->cards[first].suit;
 
-	printf("Card saved successfully: %d, %c\n", saved->num, saved->suit); // keep in mind that saved is a pointer to a card rn.
+	//printf("Card saved successfully: %d, %c\n", saved->num, saved->suit); // keep in mind that saved is a pointer to a card rn.
 
 	// Swap the first card with the second
 	d->cards[first].num = d->cards[second].num;
@@ -79,8 +79,20 @@ void swap_cards(Deck *d, int first, int second){
 	d->cards[second].num = saved->num;
 	d->cards[second].suit = saved->suit;
 
-	printf("Cards swapped successfully\n");
+	//printf("Cards swapped successfully\n");
 }
+
+void shuffle(Deck *d){
+	// Shuffle will be a series of card swaps. I will swap a set amount of times. 100 for now.
+	int swaps;
+	for (swaps=0; swaps<100; swaps++){
+		int r1 = rand() % 52; // mod 52 will always give me between 0 and 51.
+		int r2 = rand() % 52; 
+		swap_cards(d, r1, r2);
+		printf("Random numbers generated: %d, %d\n", r1, r2);
+	}
+}
+
 
 int main(){
 	/*
@@ -94,7 +106,8 @@ int main(){
 	Deck *my_deck;
 	my_deck = make_deck();
 	print_deck(my_deck);
-	swap_cards(my_deck, 0,1);
+	//swap_cards(my_deck, 0,1);
+	shuffle(my_deck);
 	print_deck(my_deck);
 	return 0;
 }
