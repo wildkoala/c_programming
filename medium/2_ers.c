@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #define BUFFER 200
+#define NUM_PLAYERS 4 //get this from user in eventually
 
 typedef struct card_tag {
     int num;
@@ -12,13 +13,14 @@ typedef struct deck_tag {
 	Card cards[52];
 } Deck;
 
-/*
+typedef struct hands_tag{
+  Deck *hands[NUM_PLAYERS]; // an array of pointers to decks (1 per player)
+} Hands;
 
+/*
 '->'' means "access the thing at the end of this pointer"
 access individual members in a struct by saying "struct.member"
-
 // I don't need this because I'm creating space for all the cards when I make a deck. I just need to initialize the cards in my deck.
-
 Card *make_card(int given_num, char given_suit){
     Card *temp = calloc(1, sizeof(Card));
     temp->num = given_num;
@@ -93,6 +95,17 @@ void shuffle(Deck *d){
 	}
 }
 
+Hands *deal_hands(Deck *d, int num_players){
+    int i;
+    Hands *dealt_hands;
+    dealt_hands = calloc(1, sizeof(Hands));
+    for (i=0;i<num_players;i++){
+        dealt_hands->hands[i] = make_deck(); //this deck will be initialized with cards tho
+    }
+    return dealt_hands;
+}
+
+void print_hands();
 
 int main(){
 	/*
@@ -101,15 +114,15 @@ int main(){
 	print_card(my_card);
 	*/
 
-	printf("\n\nNow let's try a deck\n\n");
-
+	//printf("\n\nNow let's try a deck\n\n");
+  
 	Deck *my_deck;
 	my_deck = make_deck();
 	print_deck(my_deck);
 	//swap_cards(my_deck, 0,1);
 	shuffle(my_deck);
 	print_deck(my_deck);
+  Hands *game_hands;
+  game_hands = deal_hands(my_deck, NUM_PLAYERS);
 	return 0;
 }
-
-
