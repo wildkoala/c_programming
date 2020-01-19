@@ -18,10 +18,12 @@ typedef struct hands_tag{
     Deck *hands[NUM_PLAYERS]; // an array of pointers to decks (1 per player)
 } Hands;
 
+/*
 typedef struct pile_tag{
 	int next_slot;
 	Card cards[52];
 } Pile;
+*/
 
 /*
 '->'' means "access the thing at the end of this pointer"
@@ -101,6 +103,12 @@ void print_hands(Hands *h){
   	}
 }
 
+void place_card(int round_c, int player_going, Deck *game_pile, Hands *game_hands){
+	game_pile->cards[round_c] = game_hands->hands[player_going]->cards[round_c];
+	game_hands->hands[player_going]->cards[round_c].num = 0; // will assigning like this work?  https://stackoverflow.com/questions/330793/how-to-initialize-a-struct-in-accordance-with-c-programming-language-standards
+	game_hands->hands[player_going]->cards[round_c].suit = 'O'; // I'm certain there's a less hacky way to do that.
+}
+
 void swap_cards(Deck *d, int first, int second){ 
 	// I think I'm going to have to allocate a spot in memory to save this card for a sec while I do the swap.
 	Card *saved = calloc(1, sizeof(Card));
@@ -140,10 +148,10 @@ Hands *deal_hands(Deck *d, int num_players){ // right now should just have empty
 
     for (i=0;i<num_players;i++){
         dealt_hands->hands[i] = make_empty_deck(); 
-        printf("In loop making empty decks\n");
+        //printf("In loop making empty decks\n");
     }
-    printf("Out of empty deck loop\n");
-    // Oh shit, this doesn't work because I didn't initialize the top card!!
+    //printf("Out of empty deck loop\n");
+    // Oh shit, this doesn't work because I didn't initialize the top card!! fixed it.
     // hm, didn't get this to change anything.
     for (deck_i=0; deck_i<52; deck_i++){ // can i initialize this outside of the loop and use it later?
        	//printf("In deck dealing loop\n");
@@ -171,7 +179,7 @@ Hands *deal_hands(Deck *d, int num_players){ // right now should just have empty
        	current_player = (current_player+1)%num_players;
     }
 
-    printf("\nHands have been dealt...\n");
+    //printf("\nHands have been dealt...\n");
     return dealt_hands;
 }
 
@@ -185,7 +193,10 @@ int main(){
 	*/
 
 	//printf("\n\nNow let's try a deck\n\n");
-  
+  	int winner = 0;
+  	int round_winner = 0;
+  	int round_counter = 0;
+  	int player_going = 0;
 	Deck *my_deck;
 	my_deck = make_deck();
 	//print_deck(my_deck);
@@ -194,8 +205,52 @@ int main(){
 	//print_deck(my_deck);
   	Hands *game_hands;
   	game_hands = deal_hands(my_deck, NUM_PLAYERS);
-  	print_hands(game_hands);
+  	//print_hands(game_hands);
 
+  	Deck *game_pile;
+  	game_pile = make_empty_deck();
+  	// Hands have been dealt. begin game loop
+
+  	while (winner != 1){
+  		printf("In game loop\n");
+  		// Player 0 places a card
+  		place_card(round_counter, player_going, game_pile, game_hands);
+  		printf("Here's the game pile now:\n");
+  		print_deck(game_pile);
+  		printf("Here's the first player's pile now:\n");
+  		print_deck(game_hands->hands[0]);
+  		winner = 1;
+  		// next player places a card
+
+  	}
+  	printf("Exited the game loop, winner = 1\n");
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
