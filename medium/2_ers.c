@@ -10,12 +10,18 @@ typedef struct card_tag {
 } Card;
 
 typedef struct deck_tag {
+	int top_card;
 	Card cards[52];
 } Deck;
 
 typedef struct hands_tag{
-  Deck *hands[NUM_PLAYERS]; // an array of pointers to decks (1 per player)
+    Deck *hands[NUM_PLAYERS]; // an array of pointers to decks (1 per player)
 } Hands;
+
+typedef struct pile_tag{
+	int next_slot;
+	Card cards[52];
+} Pile;
 
 /*
 '->'' means "access the thing at the end of this pointer"
@@ -38,12 +44,34 @@ Deck *make_deck(){
     int deck_c = 0;
     int suit_c;
     int num_c;
+    temp->top_card = 0;
     char suits[5] = {'S', 'H', 'D', 'C'};
     for (suit_c=0; suit_c<4; suit_c++){
     	for (num_c=2; num_c<15; num_c++){
     		temp->cards[deck_c].num = num_c; // Is this going to correctly write into the memory?
     		//printf("Wrote %d into Card %d\n", num_c, deck_c);
     		temp->cards[deck_c].suit = suits[suit_c];
+    		//printf("Wrote %c into Card %d\n", suits[suit_c], deck_c);
+    		deck_c++;
+    	}
+    }
+
+    return temp;
+}
+
+// this makes a deck that is uninitialized, there's probably a better way, idk. Maybe a condtional statement in the make_deck func.
+Deck *make_empty_deck(){
+    Deck *temp = calloc(1, sizeof(Deck));
+    int deck_c = 0;
+    int suit_c;
+    int num_c;
+    char suits[5] = {'S', 'H', 'D', 'C'};
+    temp->top_card = 0;
+    for (suit_c=0; suit_c<4; suit_c++){
+    	for (num_c=2; num_c<15; num_c++){
+    		temp->cards[deck_c].num = 0; // Is this going to correctly write into the memory?
+    		//printf("Wrote %d into Card %d\n", num_c, deck_c);
+    		temp->cards[deck_c].suit = 'O';
     		//printf("Wrote %c into Card %d\n", suits[suit_c], deck_c);
     		deck_c++;
     	}
@@ -63,6 +91,14 @@ void print_deck(Deck *d){
 	for (i=0;i<52;i++){
 		print_card(d, i);
 	}
+}
+
+void print_hands(Hands *h){
+  	int i;
+  	for(i=0; i<NUM_PLAYERS; i++){
+  		printf("Hand shown: %d\n", i);
+  		print_deck(h->hands[i]);
+  	}
 }
 
 void swap_cards(Deck *d, int first, int second){ 
@@ -91,21 +127,55 @@ void shuffle(Deck *d){
 		int r1 = rand() % 52; // mod 52 will always give me between 0 and 51.
 		int r2 = rand() % 52; 
 		swap_cards(d, r1, r2);
-		printf("Random numbers generated: %d, %d\n", r1, r2);
+		// printf("Random numbers generated: %d, %d\n", r1, r2);
 	}
 }
 
-Hands *deal_hands(Deck *d, int num_players){
+Hands *deal_hands(Deck *d, int num_players){ // right now should just have empty hands for every player.
     int i;
+    int deck_i;
+    int current_player=0;
     Hands *dealt_hands;
     dealt_hands = calloc(1, sizeof(Hands));
+
     for (i=0;i<num_players;i++){
-        dealt_hands->hands[i] = make_deck(); //this deck will be initialized with cards tho
+        dealt_hands->hands[i] = make_empty_deck(); 
+        printf("In loop making empty decks\n");
     }
+    printf("Out of empty deck loop\n");
+    // Oh shit, this doesn't work because I didn't initialize the top card!!
+    // hm, didn't get this to change anything.
+    for (deck_i=0; deck_i<52; deck_i++){ // can i initialize this outside of the loop and use it later?
+       	//printf("In deck dealing loop\n");
+       	
+       	Deck *current_player_deck = dealt_hands->hands[current_player];
+       	/*
+       	//current_player_d->cards[current_player_d->top_card] = d->cards[deck_i]; // can I assign a whole card like this?
+       	// lets try it this way.
+       	current_player_d->cards[current_player_d->top_card].num = d->cards[deck_i].num;
+       	current_player_d->cards[current_player_d->top_card].suit = d->cards[deck_i].suit;
+		*/
+		// array of deck pointers->specific deck pointer[]->cards[specific_deck_pointer->top_card]
+
+		// this is looping properly.
+
+		int curr_index = current_player_deck->top_card;
+		//printf("Current top card value: %d\n", curr_index);
+    	//print_card(dealt_hands->hands[current_player]->cards[curr_index]);
+		current_player_deck->cards[current_player_deck->top_card] = d->cards[deck_i]; // can I assign a whole card like this?
+       	//print_card(current_player_deck, current_player_deck->top_card);
+
+       	// Increment top card index
+       	dealt_hands->hands[current_player]->top_card++;
+       	// go on to the next player, wrap around when you've gone to every player.
+       	current_player = (current_player+1)%num_players;
+    }
+
+    printf("\nHands have been dealt...\n");
     return dealt_hands;
 }
 
-void print_hands();
+
 
 int main(){
 	/*
@@ -118,11 +188,14 @@ int main(){
   
 	Deck *my_deck;
 	my_deck = make_deck();
-	print_deck(my_deck);
+	//print_deck(my_deck);
 	//swap_cards(my_deck, 0,1);
 	shuffle(my_deck);
-	print_deck(my_deck);
-  Hands *game_hands;
-  game_hands = deal_hands(my_deck, NUM_PLAYERS);
+	//print_deck(my_deck);
+  	Hands *game_hands;
+  	game_hands = deal_hands(my_deck, NUM_PLAYERS);
+  	print_hands(game_hands);
+
+
 	return 0;
 }
