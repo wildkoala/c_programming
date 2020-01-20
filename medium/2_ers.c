@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define BUFFER 200
 #define NUM_PLAYERS 4 //get this from user in eventually
@@ -114,6 +115,7 @@ void place_card(int player_going, Deck *game_pile, Hands *game_hands){
 	player_deck->cards[player_deck->bottom_card].suit = 'O'; // I'm certain there's a less hacky way to do this.
 	player_deck->bottom_card++;
 	game_pile->top_card++; // increment top card to the next open slot.
+	//printf("game_pile->top_card is now: %d\n", game_pile->top_card);
 }
 
 void swap_cards(Deck *d, int first, int second){ 
@@ -137,6 +139,7 @@ void swap_cards(Deck *d, int first, int second){
 
 void shuffle(Deck *d){
 	// Shuffle will be a series of card swaps. I will swap a set amount of times. 100 for now.
+	srand(time(NULL)); // ADDED
 	int swaps;
 	for (swaps=0; swaps<100; swaps++){
 		int r1 = rand() % 52; // mod 52 will always give me between 0 and 51.
@@ -194,20 +197,31 @@ Hands *deal_hands(Deck *d, int num_players){ // right now should just have empty
 // I fixed it by creating a "bottom_card" int, and I just reference that to place a card down. It's incremented at the same time game_pile is, so they are both correct.
 
 int face_card(int player_going, Deck *game_pile, Hands *game_hands){
-	int chances = game_pile->cards[game_pile->bottom_card].num - 10;
+	int chances = game_pile->cards[game_pile->top_card-1].num - 10; // is this supposed to be minus one? hold on. yes, I believe so, the card is already on the pile.
 	int i;
 
-	printf("In face_card function\n");
+	//printf("In face_card function\n");
 	printf("chances: %d\n", chances);
 	for (i=0;i<chances;i++){
-		printf("In face_card LOOP\n");
+		//printf("In face_card LOOP\n");
 		place_card(player_going, game_pile, game_hands);
   		
   		Card played_card;
-  		played_card = game_pile->cards[game_pile->top_card];
-  		printf("Player %d played:\n", player_going);
-  		print_card(game_hands->hands[player_going], game_pile->top_card); // checking to see what player two puts down.
+  		played_card = game_pile->cards[game_pile->top_card - 1];
+  		printf("SAVE ATTEMPT %d: Player %d played:\n", i+1, (player_going%4)+1);
+  		print_card(game_pile, game_pile->top_card-1); // must be top_card minus 1 index to see the most recently played card. "top_card" is the first open space a new card can go into.
+  		
+  		//printf("Played Card number is: %d\n", played_card.num);
+  		printf("Printing pile on the table:\n");
+  		print_deck(game_pile);
+  		
+
+
   		if (played_card.num >= 11){
+  			printf("card is a Jack or higher, save works. Here's the card again. ");
+  			print_card(game_pile, game_pile->top_card -1); // NO! You want (game_pile, game_pile->top -1), not (game_hands->hands[player_going], game_pile->top_card-1)!
+  			printf("Digit compared: %d\n", played_card.num);
+  			// print_deck(game_pile);
   			return 1;
   		}
 	}
@@ -242,14 +256,23 @@ int main(){
   	// Hands have been dealt. begin game loop
 
   	while (winner != 1){
-  		printf("In game loop\n");
+  		//printf("In game loop\n");
   		// Player 0 places a card
   		place_card(player_going, game_pile, game_hands);
-  		Card played_card = game_pile->cards[game_pile->bottom_card];
-  		player_going = (player_going + 1)%NUM_PLAYERS; // onto the next player
+  		Card played_card = game_pile->cards[game_pile->top_card-1]; //must be top_card minus 1 index to see the most recently played card. "top_card" is the first open space a new card can go into.
+  		printf("Player %d played: ", (player_going%4)+1);
+  		print_card(game_pile, game_pile->top_card-1); // this is the most recent card to be set on the pile.
 
-  		printf("First card placed:\n");
-  		print_card(game_pile, 0);
+
+  		//printf("player going: %d\n", player_going);
+  		player_going = (player_going + 1)%NUM_PLAYERS; // onto the next player
+		//printf("player going after incrementing: %d\n", player_going);
+  		// TESTING - YES. UP TO THIS POINT THE CODE FUNCTIONS PROPERLY.
+  		//print_hands(game_hands);
+  		//printf("Printing current pile on table:\n");
+  		//print_deck(game_pile);
+  		//break;
+
   		// I'd like to test the face_card function. Need a made up card.
   		// bottom_card is the lowest index where there is a valid card
   		// top_card is the first open index that a new card can be written into.
@@ -261,20 +284,26 @@ int main(){
   		if (played_card.num >= 11) { // can I reference it like this?
   			printf("Face card played!\n");
   			int save_succeed;
+  			//printf("Args passed to face_card:\n - player: %d\n", player_going);
   			save_succeed = face_card(player_going, game_pile, game_hands);
   			if (save_succeed){
   				player_going = (player_going + 1)%NUM_PLAYERS;
+  				printf("Save succeeded!\n");
   				continue;
   			}
   			else{
-  				printf("Round over! Player %d wins the pile\n", (player_going+1)); // do i need the () here?
+  				printf("Round over! Player %d wins the pile\n", player_going); // it should be player_going -1, but idk how to deal with player 0 loses, so player 3 wins.
+  				winner = 1;
   			}
+  		}
+  		else{
+  			continue;
   		}
 
   		//print_deck(game_pile);
   		//printf("Here's the first player's pile now:\n"); // This is working as intended, nice.
   		//print_deck(game_hands->hands[0]);
-  		winner = 1;
+  		//winner = 1;
   		// next player places a card
 
   	}
@@ -291,21 +320,37 @@ int main(){
 
 
 
+// Game logic:
+
+/* 
+
+int face_card(card) {
+	chances = card.num - 10;
+	int i;
+
+	for (i=0; i<chances; i++){
+		played_card = flip_a_card()
+		if (played_card.num >= 11){
+			return 1;
+		}
+	} 
+	return 0;
+}
+
+
+flip_a_card();
+
+if (face_card){
+	call face_card(card);
+}
+
+else{
+	onto the next player;
+}
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+*/
