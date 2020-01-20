@@ -10,6 +10,7 @@ typedef struct card_tag {
 } Card;
 
 typedef struct deck_tag {
+	int bottom_card;
 	int top_card;
 	Card cards[52];
 } Deck;
@@ -47,6 +48,7 @@ Deck *make_deck(){
     int suit_c;
     int num_c;
     temp->top_card = 0;
+    temp->bottom_card = 0;
     char suits[5] = {'S', 'H', 'D', 'C'};
     for (suit_c=0; suit_c<4; suit_c++){
     	for (num_c=2; num_c<15; num_c++){
@@ -69,6 +71,7 @@ Deck *make_empty_deck(){
     int num_c;
     char suits[5] = {'S', 'H', 'D', 'C'};
     temp->top_card = 0;
+    temp->bottom_card = 0;
     for (suit_c=0; suit_c<4; suit_c++){
     	for (num_c=2; num_c<15; num_c++){
     		temp->cards[deck_c].num = 0; // Is this going to correctly write into the memory?
@@ -103,10 +106,14 @@ void print_hands(Hands *h){
   	}
 }
 
-void place_card(int round_c, int player_going, Deck *game_pile, Hands *game_hands){
-	game_pile->cards[round_c] = game_hands->hands[player_going]->cards[round_c];
-	game_hands->hands[player_going]->cards[round_c].num = 0; // will assigning like this work?  https://stackoverflow.com/questions/330793/how-to-initialize-a-struct-in-accordance-with-c-programming-language-standards
-	game_hands->hands[player_going]->cards[round_c].suit = 'O'; // I'm certain there's a less hacky way to do that.
+// I think that adding the bottom_card to the struct will let me place down cards properly, can't reference things by round, since you can put down multiple in a round.
+void place_card(int player_going, Deck *game_pile, Hands *game_hands){
+	Deck *player_deck = game_hands->hands[player_going];
+	game_pile->cards[game_pile->top_card] = player_deck->cards[player_deck->bottom_card]; // top card in the game_deck is now set.
+	player_deck->cards[player_deck->bottom_card].num = 0; // will assigning like this work?  https://stackoverflow.com/questions/330793/how-to-initialize-a-struct-in-accordance-with-c-programming-language-standards
+	player_deck->cards[player_deck->bottom_card].suit = 'O'; // I'm certain there's a less hacky way to do this.
+	player_deck->bottom_card++;
+	game_pile->top_card++; // increment top card to the next open slot.
 }
 
 void swap_cards(Deck *d, int first, int second){ 
@@ -183,6 +190,30 @@ Hands *deal_hands(Deck *d, int num_players){ // right now should just have empty
     return dealt_hands;
 }
 
+// this function will break my program, as the round_c index will not work anymore. it will reference a card that is now a 0 'O' instead of a legit card.
+// I fixed it by creating a "bottom_card" int, and I just reference that to place a card down. It's incremented at the same time game_pile is, so they are both correct.
+
+int face_card(int player_going, Deck *game_pile, Hands *game_hands){
+	int chances = game_pile->cards[game_pile->bottom_card].num - 10;
+	int i;
+
+	printf("In face_card function\n");
+	printf("chances: %d\n", chances);
+	for (i=0;i<chances;i++){
+		printf("In face_card LOOP\n");
+		place_card(player_going, game_pile, game_hands);
+  		
+  		Card played_card;
+  		played_card = game_pile->cards[game_pile->top_card];
+  		printf("Player %d played:\n", player_going);
+  		print_card(game_hands->hands[player_going], game_pile->top_card); // checking to see what player two puts down.
+  		if (played_card.num >= 11){
+  			return 1;
+  		}
+	}
+	return 0;
+}
+
 
 
 int main(){
@@ -195,7 +226,6 @@ int main(){
 	//printf("\n\nNow let's try a deck\n\n");
   	int winner = 0;
   	int round_winner = 0;
-  	int round_counter = 0;
   	int player_going = 0;
 	Deck *my_deck;
 	my_deck = make_deck();
@@ -214,11 +244,36 @@ int main(){
   	while (winner != 1){
   		printf("In game loop\n");
   		// Player 0 places a card
-  		place_card(round_counter, player_going, game_pile, game_hands);
-  		printf("Here's the game pile now:\n");
-  		print_deck(game_pile);
-  		printf("Here's the first player's pile now:\n");
-  		print_deck(game_hands->hands[0]);
+  		place_card(player_going, game_pile, game_hands);
+  		Card played_card = game_pile->cards[game_pile->bottom_card];
+  		player_going = (player_going + 1)%NUM_PLAYERS; // onto the next player
+
+  		printf("First card placed:\n");
+  		print_card(game_pile, 0);
+  		// I'd like to test the face_card function. Need a made up card.
+  		// bottom_card is the lowest index where there is a valid card
+  		// top_card is the first open index that a new card can be written into.
+  		//Deck *test_deck = calloc(1, sizeof(Deck));
+  		//test_deck->bottom_card = 0;
+  		//test_deck->top_card = 0;
+
+  		//printf("Here's the game pile now:\n");
+  		if (played_card.num >= 11) { // can I reference it like this?
+  			printf("Face card played!\n");
+  			int save_succeed;
+  			save_succeed = face_card(player_going, game_pile, game_hands);
+  			if (save_succeed){
+  				player_going = (player_going + 1)%NUM_PLAYERS;
+  				continue;
+  			}
+  			else{
+  				printf("Round over! Player %d wins the pile\n", (player_going+1)); // do i need the () here?
+  			}
+  		}
+
+  		//print_deck(game_pile);
+  		//printf("Here's the first player's pile now:\n"); // This is working as intended, nice.
+  		//print_deck(game_hands->hands[0]);
   		winner = 1;
   		// next player places a card
 
