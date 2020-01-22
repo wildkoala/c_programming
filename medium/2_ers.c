@@ -230,6 +230,33 @@ int face_card(int player_going, Deck *game_pile, Hands *game_hands){
 
 
 
+
+//UNTESTED FUNCTION, CURRENTLY NOT CALLED IN MAIN
+// This should work as long as there is an empty card at d->top_card
+// Otherwise, you'll try to grab information outside of the memory
+// allocated for this particular deck.
+
+// SO: you'll always want to reset a deck before you add cards to it.
+// you'll always have to check to see if you won and have all the cards
+// right after you add the pile to your hand. 
+
+/*
+if (d->top_card == 52){
+    player_wins()
+}
+*/
+void reset_deck(Deck *d){
+    int shift_amount = d->bottom_card; 
+    int i;
+    
+    //shift cards so that cards start at index 0 again.
+    for (i=0;i<d->top_card;i++){
+        d->cards[i] = d->cards[i+shift_amount];
+    }
+    d->top_card = d->top_card-bottom;
+    d->bottom_card = 0;
+}
+
 int main(){
 	/*
 	Card *my_card;
