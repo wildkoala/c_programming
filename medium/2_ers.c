@@ -308,6 +308,9 @@ int main(){
   		//test_deck->top_card = 0;
 
   		//printf("Here's the game pile now:\n");
+		
+		// change the logic here so that when someone saves themselves, that it starts the count for the next person
+		// currently, getting a facecard just bails you out from losing, it doesn't make the person after you get a face card.
   		if (played_card.num >= 11) { // can I reference it like this?
   			printf("Face card played!\n");
   			int save_succeed;
