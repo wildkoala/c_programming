@@ -253,7 +253,7 @@ void reset_deck(Deck *d){
     for (i=0;i<d->top_card;i++){
         d->cards[i] = d->cards[i+shift_amount];
     }
-    d->top_card = d->top_card-bottom;
+    d->top_card = d->top_card-shift_amount;
     d->bottom_card = 0;
 }
 
