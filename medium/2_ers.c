@@ -152,8 +152,6 @@ Hands *deal_hands(Deck *d, int num_players){
        	dealt_hands->hands[current_player]->top_card++;
        	current_player = (current_player+1)%num_players;
     }
-
-    //printf("\nHands have been dealt...\n");
     return dealt_hands;
 }
 
@@ -189,12 +187,8 @@ int face_card(int player_going, Deck *game_pile, Hands *game_hands){
 }
 
 
-//UNTESTED FUNCTION, CURRENTLY NOT CALLED IN MAIN
-// This should work as long as there is an empty card at d->top_card
-// Otherwise, you'll try to grab information outside of the memory
-// allocated for this particular deck.
 
-// SO: you'll always want to reset a deck before you add cards to it.
+// You'll always want to reset a deck before you add cards to it.
 // you'll always have to check to see if you won and have all the cards
 // right after you add the pile to your hand. 
 
@@ -204,6 +198,7 @@ if (d->top_card == 52){
 }
 */
 void reset_deck(Deck *d){
+    printf("Clearing a deck now...\n");
     int shift_amount = d->bottom_card; 
     int i;
     
@@ -213,6 +208,19 @@ void reset_deck(Deck *d){
     }
     d->top_card = d->top_card-shift_amount;
     d->bottom_card = 0;
+    printf("New bottom card num: %d\n", d->bottom_card);
+    printf("New top card num: %d\n", d->top_card);
+}
+
+// This will reset each of your player hands and the game deck.
+void reset_all_decks(Hands *player_hands, Deck *game_pile){
+  printf("Resetting decks...\n");
+  int i;
+  for (i=0;i<NUM_PLAYERS;i++){
+    reset_deck(player_hands->hands[i]);
+  }
+  reset_deck(game_pile);
+  printf("All decks reset\n");
 }
 
 int main(){
@@ -245,6 +253,10 @@ int main(){
 
         // BUG: This print statement isn't exactly right... Including 0 when it should be 1-4
         printf("Round over! Player %d wins the pile\n", (round_winner%NUM_PLAYERS)+1);
+
+        
+        reset_all_decks(game_hands, game_pile);
+        
         winner = 1; // this isnt really true as only one round is actually over.
   		}
   		
@@ -252,7 +264,24 @@ int main(){
   			continue;
   		}
   	}
-  	printf("Exited the game loop, winner = 1\n");
+  	printf("Exited the game loop\n");
 
 	return 0;
 }
+
+
+
+
+
+
+/*
+
+When a round is over, everyone resets their deck, so that their bottom card is
+back to 0, and then the top_card points to the first open slot.
+
+Then, add each card from top down the game pile to the players hand.
+
+Check all of the players hands. If any of them have a card in the last card slot, then they must have 52 cards, which is all the cards, so they win. Exit the game loop
+
+If there wasn't a winner, start a new round
+*/
