@@ -84,6 +84,7 @@ void print_card(Deck *d, int i){ //maybe I should have this take a card as an ar
 
 
 void print_deck(Deck *d){
+	printf("PRINTING DECK:\n");
 	int i;
 	for (i=0;i<52;i++){
 		print_card(d, i);
@@ -161,18 +162,19 @@ Hands *deal_hands(Deck *d, int num_players){
 
 
 // I want this function to return the player that wins the round.
-// BUG: This function seems to work for everything except Jacks? (11) FIX: break statement
+// BUG: Returning unpredictable values
+// Need it to be 0-based (so for 4 players, 0-3)
 int face_card(int player_going, Deck *game_pile, Hands *game_hands){
 	int chances = game_pile->cards[game_pile->top_card-1].num - 10; // is this supposed to be minus one? hold on. yes, I believe so, the card is already on the pile.
 	
-  int i;
+    int i;
 	printf("chances: %d\n", chances);
 	for (i=0;i<chances;i++){
 		place_card(player_going, game_pile, game_hands);
   		
     Card played_card;
     played_card = game_pile->cards[game_pile->top_card - 1];
-    printf("SAVE ATTEMPT %d: Player %d played:\n", i+1, (player_going%4)+1);
+    printf("ATTEMPT %d: Player %d played:\n", i+1, (player_going%NUM_PLAYERS));
     print_card(game_pile, game_pile->top_card-1); // must be top_card minus 1 index to see the most recently played card. "top_card" is the first open space a new card can go into.
   	
     
@@ -180,10 +182,19 @@ int face_card(int player_going, Deck *game_pile, Hands *game_hands){
       printf("SAVED. Next player...\n");
       player_going = (player_going+1)%NUM_PLAYERS;
       face_card(player_going, game_pile, game_hands);
-      break; // Does this fix it? Yes it does. Need to break out of the loop once face_card returns
+      break;
     }
 	}
-	return player_going-1; //this should be the player that won the round
+
+	// This is what im returning, but the logic must be wrong. Need to return correct player
+	if(player_going==0){
+		return NUM_PLAYERS;
+	}
+	else{
+		// do i need to subtract 1
+		return player_going-1; //this should be the player that won the round. BUG: If it's player 0, you'll return a -1 and break it. FIXED: Added clause for player == 0
+	}
+	
 }
 
 
@@ -197,8 +208,27 @@ if (d->top_card == 52){
     player_wins()
 }
 */
+
+// doesnt seem like every card is being added...
+void add_winnings(Deck *player_hand, Deck *game_pile){
+	int num_cards = game_pile->top_card;
+	int i;
+
+	for (i=0;i<num_cards;i++){
+		// Put the card from the bottom of the pile and put it on top of the winners hand
+		player_hand->cards[player_hand->top_card] = game_pile->cards[i];
+		// Have to increment the top card now
+		player_hand->top_card = player_hand->top_card++;
+
+		//Reset that card in the game_pile
+		game_pile->cards[i].num = 0;
+		game_pile->cards[i].suit = 'O';
+	}
+}
+
+
 void reset_deck(Deck *d){
-    printf("Clearing a deck now...\n");
+    //printf("Clearing a deck now...\n");
     int shift_amount = d->bottom_card; 
     int i;
     
@@ -208,19 +238,19 @@ void reset_deck(Deck *d){
     }
     d->top_card = d->top_card-shift_amount;
     d->bottom_card = 0;
-    printf("New bottom card num: %d\n", d->bottom_card);
-    printf("New top card num: %d\n", d->top_card);
+    //printf("New bottom card num: %d\n", d->bottom_card);
+    //printf("New top card num: %d\n", d->top_card);
 }
 
 // This will reset each of your player hands and the game deck.
 void reset_all_decks(Hands *player_hands, Deck *game_pile){
-  printf("Resetting decks...\n");
+  // printf("Resetting decks...\n");
   int i;
   for (i=0;i<NUM_PLAYERS;i++){
     reset_deck(player_hands->hands[i]);
   }
   reset_deck(game_pile);
-  printf("All decks reset\n");
+  // printf("All decks reset\n");
 }
 
 int main(){
@@ -241,7 +271,7 @@ int main(){
   		
   		place_card(player_going, game_pile, game_hands);
   		Card played_card = game_pile->cards[game_pile->top_card-1];
-  		printf("Player %d played: ", (player_going%NUM_PLAYERS)+1); //Displays current player
+  		printf("Player %d played: ", (player_going%NUM_PLAYERS)); //Displays current player
   		print_card(game_pile, game_pile->top_card-1); // this is the most recent card to be set on the pile.
  
   		player_going = (player_going + 1)%NUM_PLAYERS; // onto the next player
@@ -252,11 +282,22 @@ int main(){
   			round_winner = face_card(player_going, game_pile, game_hands);
 
         // BUG: This print statement isn't exactly right... Including 0 when it should be 1-4
-        printf("Round over! Player %d wins the pile\n", (round_winner%NUM_PLAYERS)+1);
+		// printf("Round winner index num: %d\n", round_winner);
+        printf("Round over! Player %d wins the pile\n", (round_winner%NUM_PLAYERS));
 
         
         reset_all_decks(game_hands, game_pile);
-        
+		
+		//print_deck(game_hands->hands[round_winner]);	
+		// print_deck(game_pile);
+		// this is supposed to add the cards won into the hand of the winner.
+		// add_winnings(game_hands->hands[round_winner], game_pile);
+		
+		// testing
+		
+		//print_deck(game_hands->hands[round_winner]);
+		//print_deck(game_pile);
+        /**/
         winner = 1; // this isnt really true as only one round is actually over.
   		}
   		
