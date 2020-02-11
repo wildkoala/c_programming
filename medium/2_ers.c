@@ -172,18 +172,18 @@ int face_card(int player_going, Deck *game_pile, Hands *game_hands){
 	for (i=0;i<chances;i++){
 		place_card(player_going, game_pile, game_hands);
   		
-    Card played_card;
-    played_card = game_pile->cards[game_pile->top_card - 1];
-    printf("ATTEMPT %d: Player %d played:\n", i+1, (player_going%NUM_PLAYERS));
-    print_card(game_pile, game_pile->top_card-1); // must be top_card minus 1 index to see the most recently played card. "top_card" is the first open space a new card can go into.
-  	
-    
-    if (played_card.num >= 11){
-      printf("SAVED. Next player...\n");
-      player_going = (player_going+1)%NUM_PLAYERS;
-      face_card(player_going, game_pile, game_hands);
-      break;
-    }
+		Card played_card;
+		played_card = game_pile->cards[game_pile->top_card - 1];
+		printf("ATTEMPT %d: Player %d played:\n", i+1, (player_going%NUM_PLAYERS));
+		print_card(game_pile, game_pile->top_card-1); // must be top_card minus 1 index to see the most recently played card. "top_card" is the first open space a new card can go into.
+		
+		
+		if (played_card.num >= 11){
+			printf("SAVED. Next player...\n");
+			player_going = (player_going+1)%NUM_PLAYERS;
+			face_card(player_going, game_pile, game_hands);
+			break;
+		}
 	}
 
 	// This is what im returning, but the logic must be wrong. Need to return correct player
