@@ -1,7 +1,8 @@
 /*
 BUGS:
 
-1. Need to add exception handling for when a player doesn't have anymore cards to place. (They've lost and need to be skipped)
+1. Need to add exception handling for when a player doesn't have anymore cards to place. (They've lost and need to be skipped) Breaks program right now
+2. Need next round to start with the person that just won the previous round.
 
 */
 
@@ -116,10 +117,11 @@ int round_winner(int player_going){
 	return player_going-1;
 }
 
-// I think that adding the bottom_card to the struct will let me place down cards properly, can't reference things by round, since you can put down multiple in a round.
+
 void place_card(int player_going, Deck *game_pile, Hands *game_hands){
 	Deck *player_deck = game_hands->hands[player_going];
-	game_pile->cards[game_pile->top_card] = player_deck->cards[player_deck->bottom_card]; // top card in the game_deck is now set.
+	// Need to check if they have a card first, then play card.
+	game_pile->cards[game_pile->top_card] = player_deck->cards[player_deck->bottom_card]; 
 	player_deck->cards[player_deck->bottom_card].num = 0; // will assigning like this work?  https://stackoverflow.com/questions/330793/how-to-initialize-a-struct-in-accordance-with-c-programming-language-standards
 	player_deck->cards[player_deck->bottom_card].suit = 'O'; // I'm certain there's a less hacky way to do this.
 	player_deck->bottom_card++;
@@ -127,7 +129,6 @@ void place_card(int player_going, Deck *game_pile, Hands *game_hands){
 }
 
 void swap_cards(Deck *d, int first, int second){ 
-	// I think I'm going to have to allocate a spot in memory to save this card for a sec while I do the swap.
 	Card *saved = calloc(1, sizeof(Card));
 	saved->num = d->cards[first].num;
 	saved->suit = d->cards[first].suit;
@@ -181,13 +182,10 @@ Hands *deal_hands(Deck *d, int num_players){
 void add_winnings(Deck *player_hand, Deck *game_pile){
 	int num_cards = game_pile->top_card;
 	int i;
-	printf("Deck before adding cards:\n");
-	print_deck(player_hand);
+
 	for (i=0;i<num_cards;i++){
 		// Put the card from the bottom of the pile and put it on top of the winners hand
 		player_hand->cards[player_hand->top_card] = game_pile->cards[i];
-		printf("Card added:\n");
-		print_card(player_hand, player_hand->top_card);
 		
 		// Have to increment the top card now
 		player_hand->top_card = (player_hand->top_card) + 1;
@@ -196,8 +194,6 @@ void add_winnings(Deck *player_hand, Deck *game_pile){
 		game_pile->cards[i].num = 0;
 		game_pile->cards[i].suit = 'O';
 	}
-	printf("Deck after adding cards won:\n");
-	print_deck(player_hand);
 }
 
 
@@ -230,13 +226,11 @@ int face_card2(int player_c, Deck *game_deck, Hands *p_hands){
 		//user places a card
 		place_card(player_c, game_deck, p_hands);
 		
-
 		Card played_card;
 		played_card = game_deck->cards[game_deck->top_card - 1];
 		printf("ATTEMPT %d: Player %d played:\n", i+1, (player_c%NUM_PLAYERS));
 		print_card(game_deck, game_deck->top_card-1);
 
-		//if the card.num is 11 or more, return 1
 		if (played_card.num >= 11){
 			printf("SAVED\n");
 			return 1;
@@ -274,7 +268,7 @@ int main(){
   	game_pile = make_empty_deck();
 
   	// Hands have been dealt. begin game loop
-  	while (winner != 1){
+  	while (winner != 2){ // tRYING TO GET TWO ROUNDS
   		
   		place_card(player_going, game_pile, game_hands);
   		Card played_card = game_pile->cards[game_pile->top_card-1];
@@ -287,10 +281,9 @@ int main(){
 
 		if (face_card){
 			int round_end = 0;
-			while (round_end != 1){
+			while (round_end != 1){ 
 				int saved;
-				saved = face_card2(player_going, game_pile, game_hands); // face_card2 doesn't increment the player. Player only incremented in the game loop.
-				//printf("HERES VAL OF SAVED VAR: %d\n", saved);
+				saved = face_card2(player_going, game_pile, game_hands); 
 				if (saved){
 					// changed player_going, let's see if we still seg fault. No, now it's just not iterating??
 					// Changed from ++ to +1, let's see if that's it. Yep, that did it.
@@ -330,16 +323,18 @@ int main(){
 			round_winner_index = round_winner(player_going);
 			printf("Player %d won the round.\n", round_winner_index);
 
-			// When round ends, reset decks
 			reset_all_decks(game_hands, game_pile);
 
 			// and add the winnings to the winners deck
 			add_winnings(game_hands->hands[round_winner_index], game_pile);
-			//print_deck(game_hands->hands[round_winner_index]);
 
 			// Check if the winner has 52 cards.
 			//winner = check_win(game_hands->hands[player_going]); // this plays until there's a winner
-			winner = 1; // this means there will only be one round
+			player_going = round_winner_index; // this means the round winner will go first next round.
+			//winner = 1; // this means there will only be one round
+			winner++; //hopefully gets me two rounds
+			printf("STARTING NEW ROUND\n");
+			
 				
 		}
   	}
