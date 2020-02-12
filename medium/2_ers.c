@@ -174,11 +174,10 @@ Hands *deal_hands(Deck *d, int num_players){
 }
 
 
-// You'll always want to reset a deck before you add cards to it.
+// You'll always want to reset a deck BEFORE you add cards to it. 
 // you'll always have to check to see if you won and have all the cards
-// right after you add the pile to your hand. 
+// Right after you add the pile to your hand. 
 
-// doesnt seem like every card is being added...
 void add_winnings(Deck *player_hand, Deck *game_pile){
 	int num_cards = game_pile->top_card;
 	int i;
@@ -191,7 +190,7 @@ void add_winnings(Deck *player_hand, Deck *game_pile){
 		print_card(player_hand, player_hand->top_card);
 		
 		// Have to increment the top card now
-		player_hand->top_card = player_hand->top_card++;
+		player_hand->top_card = (player_hand->top_card) + 1;
 
 		//Reset that card in the game_pile
 		game_pile->cards[i].num = 0;
@@ -335,7 +334,7 @@ int main(){
 			reset_all_decks(game_hands, game_pile);
 
 			// and add the winnings to the winners deck
-			//add_winnings(game_hands->hands[round_winner_index], game_pile);
+			add_winnings(game_hands->hands[round_winner_index], game_pile);
 			//print_deck(game_hands->hands[round_winner_index]);
 
 			// Check if the winner has 52 cards.
