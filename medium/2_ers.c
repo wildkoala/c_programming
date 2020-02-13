@@ -10,6 +10,7 @@ BUGS:
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #define BUFFER 200
 #define NUM_PLAYERS 4 //get this from user in eventually
@@ -230,6 +231,7 @@ int face_card2(int player_c, Deck *game_deck, Hands *p_hands){
 		played_card = game_deck->cards[game_deck->top_card - 1];
 		printf("ATTEMPT %d: Player %d played:\n", i+1, (player_c%NUM_PLAYERS));
 		print_card(game_deck, game_deck->top_card-1);
+		sleep(2);
 
 		if (played_card.num >= 11){
 			printf("SAVED\n");
@@ -274,6 +276,7 @@ int main(){
   		Card played_card = game_pile->cards[game_pile->top_card-1];
   		printf("Player %d played: ", (player_going%NUM_PLAYERS)); //Displays current player
   		print_card(game_pile, game_pile->top_card-1); // this is the most recent card to be set on the pile.
+		sleep(2);
   		player_going = (player_going + 1)%NUM_PLAYERS; // onto the next player
 
 		int face_card;
@@ -345,3 +348,35 @@ int main(){
 
 
 
+/* Implement event queue that's globally accessible in the program
+
+semefors - finer control, thread sends messages to other threads
+mutex locks - lock everyone else out until done.
+
+1. User sends a 'space bar' or '^' command to the server as their client_action
+2. Server takes the client_action, verifies it is a valid action, and which client sent it. // maybe i dont need to check, just don't have an action for it.
+3. Server creates an event struct. 
+4. The server calculates the unix time (need something more to get it down to miliseconds). // maybe in the future account for latency?
+5. Event struct includes the client, client_action and time. 
+6. Events are placed into an event queue. (Priority queue where priority is based on time)
+7. Game loop takes the events, tries to pop first one off
+	a. If no event, loop back through game loop
+	b. else	{
+			if (event.client_action == ' '){
+				if (is_pair() || is_sandwich()){
+					round_over = 1;
+				}
+				else{
+					penalty();
+				}
+			}
+			if (event.client_action == '^'){
+				if(player_going == event.client){
+					place_card();
+				}
+			}			
+		}
+
+
+when in game loop, execute everything in the queue.
+*/
